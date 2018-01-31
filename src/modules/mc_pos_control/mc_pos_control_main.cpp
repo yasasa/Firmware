@@ -162,8 +162,15 @@ private:
 	struct vehicle_local_position_setpoint_s	_local_pos_sp;		/**< vehicle local position setpoint */
 	struct home_position_s				_home_pos; 				/**< home position */
 
-	control::BlockParamFloat _manual_thr_min; /**< minimal throttle output when flying in manual mode */
-	control::BlockParamFloat _manual_thr_max; /**< maximal throttle output when flying in manual mode */
+
+	DEFINE_BLOCK_PARAMETERS(
+		(BlockParamFloat<px4::params::MPC_MANTHR_MIN>)
+		_manual_thr_min, /**< minimal throttle output when flying in manual mode */
+		(BlockParamFloat<px4::params::MPC_MANTHR_MAX>) _manual_thr_max
+	)
+
+	//control::BlockParamFloat _manual_thr_min; /**< minimal throttle output when flying in manual mode */
+	//control::BlockParamFloat _manual_thr_max; /**< maximal throttle output when flying in manual mode */
 	control::BlockParamFloat _xy_vel_man_expo; /**< ratio of exponential curve for stick input in xy direction pos mode */
 	control::BlockParamFloat _z_vel_man_expo; /**< ratio of exponential curve for stick input in xy direction pos mode */
 	control::BlockParamFloat _hold_dz; /**< deadzone around the center for the sticks when flying in position mode */
@@ -440,8 +447,8 @@ MulticopterPositionControl::MulticopterPositionControl() :
 	_pos_sp_triplet{},
 	_local_pos_sp{},
 	_home_pos{},
-	_manual_thr_min(this, "MANTHR_MIN"),
-	_manual_thr_max(this, "MANTHR_MAX"),
+	//_manual_thr_min(this, "MANTHR_MIN"),
+	//_manual_thr_max(this, "MANTHR_MAX"),
 	_xy_vel_man_expo(this, "XY_MAN_EXPO"),
 	_z_vel_man_expo(this, "Z_MAN_EXPO"),
 	_hold_dz(this, "HOLD_DZ"),
