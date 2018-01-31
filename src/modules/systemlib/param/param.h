@@ -253,6 +253,14 @@ __EXPORT int		param_get(param_t param, void *val);
 __EXPORT int		param_set(param_t param, const void *val);
 
 /**
+ * Mark a parameter as used. Only marked parameters will be sent to a GCS.
+ * A call to param_find() will mark a param as used as well.
+ *
+ * @param param		A handle returned by param_find or passed by param_foreach.
+ */
+__EXPORT void		param_set_used(param_t param);
+
+/**
  * Set the value of a parameter, but do not notify the system about the change.
  *
  * @param param		A handle returned by param_find or passed by param_foreach.
@@ -487,6 +495,197 @@ static inline int param_get_cplusplus(param_t param, int32_t *val)
 #undef CHECK_PARAM_TYPE
 
 #define param_get(param, val) param_get_cplusplus(param, val)
+
+
+
+
+
+#define APPLY0(t)
+#define APPLY1(t, aaa) t(aaa)
+#define APPLY2(t, aaa, aab) t(aaa) t(aab)
+#define APPLY3(t, aaa, aab, aac) t(aaa) t(aab) t(aac)
+#define APPLY4(t, aaa, aab, aac, aad) t(aaa) t(aab) t(aac) t(aad)
+#define APPLY5(t, aaa, aab, aac, aad, aae) t(aaa) t(aab) t(aac) t(aad) t(aae)
+#define APPLY6(t, aaa, aab, aac, aad, aae, aaf) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf)
+#define APPLY7(t, aaa, aab, aac, aad, aae, aaf, aag) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag)
+#define APPLY8(t, aaa, aab, aac, aad, aae, aaf, aag, aah) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah)
+#define APPLY9(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai)
+#define APPLY10(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj)
+#define APPLY11(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak)
+#define APPLY12(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal)
+#define APPLY13(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam)
+#define APPLY14(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan)
+#define APPLY15(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan, aao) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan) t(aao)
+#define APPLY16(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan, aao, aap) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan) t(aao) t(aap)
+#define APPLY17(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan, aao, aap, aaq) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan) t(aao) t(aap) t(aaq)
+#define APPLY18(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan, aao, aap, aaq, aar) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan) t(aao) t(aap) t(aaq) t(aar)
+#define APPLY19(t, aaa, aab, aac, aad, aae, aaf, aag, aah, aai, aaj, aak, aal, aam, aan, aao, aap, aaq, aar, aas) t(aaa) t(aab) t(aac) t(aad) t(aae) t(aaf) t(aag) t(aah) t(aai) t(aaj) t(aak) t(aal) t(aam) t(aan) t(aao) t(aap) t(aaq) t(aar) t(aas)
+
+#define NUM_ARGS_H1(dummy, x19, x18, x17, x16, x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0, ...) x0
+#define NUM_ARGS(...) NUM_ARGS_H1(dummy, ##__VA_ARGS__, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+
+#define APPLY_ALL_H3(t, n, ...) APPLY##n(t, __VA_ARGS__)
+#define APPLY_ALL_H2(t, n, ...) APPLY_ALL_H3(t, n, __VA_ARGS__)
+#define APPLY_ALL(t, ...) APPLY_ALL_H2(t, NUM_ARGS(__VA_ARGS__), __VA_ARGS__)
+
+
+// TODO: add proper include path...
+#include <modules/systemlib/param/px4_parameters_public.h>
+
+
+
+// helper macros to handle macro arguments in the form: (type) name
+
+#define REM(...) __VA_ARGS__
+#define EAT(...)
+
+// Retrieve the type
+#define TYPEOF(x) DETAIL_TYPEOF(DETAIL_TYPEOF_PROBE x,)
+#define DETAIL_TYPEOF(...) DETAIL_TYPEOF_HEAD(__VA_ARGS__)
+#define DETAIL_TYPEOF_HEAD(x, ...) REM x
+#define DETAIL_TYPEOF_PROBE(...) (__VA_ARGS__),
+// Strip off the type, get the name
+#define STRIP(x) EAT x
+// Show the type without parenthesis
+#define PAIR(x) REM x
+
+
+
+#define _DEFINE_SINGLE_PARAMETER(x) \
+	do_not_explicitly_use_this_namespace::PAIR(x);
+
+#define _CALL_UPDATE(x) \
+	STRIP(x).update();
+
+// define the parameter update method, which will update all parameters.
+// It is marked as 'final', so that wrong usages lead to a compile error (see below)
+#define _DEFINE_PARAMETER_UPDATE_METHOD(...) \
+	protected: \
+	void updateParamsSubclass() final { \
+		APPLY_ALL(_CALL_UPDATE, __VA_ARGS__) \
+	} \
+	private:
+
+// Define a list of block parameters. This macro also creates code to update parameters.
+// If you get a compile error like:
+//   error: virtual function ‘virtual void <class>::updateParamsSubclass()’
+// It means you have a custom inheritance tree (at least one class with params that inherits from another
+// class with params) and you need to use DEFINE_BLOCK_PARAMETERS_CUSTOM_PARENT() for **all** classes in
+// that tree.
+#define DEFINE_BLOCK_PARAMETERS(...) \
+	APPLY_ALL(_DEFINE_SINGLE_PARAMETER, __VA_ARGS__) \
+	_DEFINE_PARAMETER_UPDATE_METHOD(__VA_ARGS__)
+
+
+#define _DEFINE_PARAMETER_UPDATE_METHOD_CUSTOM_PARENT(parent_class, ...) \
+	protected: \
+	void updateParamsSubclass() { \
+		parent_class::updateParamsSubclass(); \
+		APPLY_ALL(_CALL_UPDATE, __VA_ARGS__) \
+	} \
+	private:
+
+#define DEFINE_BLOCK_PARAMETERS_CUSTOM_PARENT(parent_class, ...) \
+	APPLY_ALL(_DEFINE_SINGLE_PARAMETER, __VA_ARGS__) \
+	_DEFINE_PARAMETER_UPDATE_METHOD_CUSTOM_PARENT(parent_class, __VA_ARGS__)
+
+
+
+inline static param_t param_handle(px4::params p)
+{
+	return (param_t)p;
+}
+
+// This namespace never needs to be used directly. Use the DEFINE_BLOCK_PARAMETERS_CUSTOM_PARENT and
+// DEFINE_BLOCK_PARAMETERS macros instead.
+namespace do_not_explicitly_use_this_namespace
+{
+
+template<typename T, px4::params p>
+class BlockParam
+{
+};
+
+// We use partial template specialization for each param type. This is only supported for classes, not individual methods,
+// which is why we have to repeat the whole class
+template<px4::params p>
+class BlockParam<float, p>
+{
+public:
+	// static type-check
+	static_assert(px4::param_types_array[(int)p] == PARAM_TYPE_FLOAT, "parameter type must be float");
+
+	BlockParam()
+	{
+		param_set_used(handle());
+		update();
+	}
+
+	float get() const { return _val; }
+
+	/// Store the parameter value to the parameter storage (@see param_set())
+	bool commit() const { return param_set(handle(), &_val) == 0; }
+
+	/// Store the parameter value to the parameter storage, w/o notifying the system (@see param_set_no_notification())
+	bool commit_no_notification() const { return param_set_no_notification(handle(), &_val) == 0; }
+
+	void set(float val) { _val = val; }
+
+	bool update() { return param_get(handle(), &_val) == 0; }
+
+	param_t handle() const { return param_handle(p); }
+private:
+	float _val;
+};
+
+template<px4::params p>
+class BlockParam<int32_t, p>
+{
+public:
+	// static type-check
+	static_assert(px4::param_types_array[(int)p] == PARAM_TYPE_INT32, "parameter type must be int32_t");
+
+	BlockParam()
+	{
+		param_set_used(handle());
+		update();
+	}
+
+	int32_t get() const { return _val; }
+
+	/// Store the parameter value to the parameter storage (@see param_set())
+	bool commit() const { return param_set(handle(), &_val) == 0; }
+
+	/// Store the parameter value to the parameter storage, w/o notifying the system (@see param_set_no_notification())
+	bool commit_no_notification() const { return param_set_no_notification(handle(), &_val) == 0; }
+
+	void set(int32_t val) { _val = val; }
+
+	bool update() { return param_get(handle(), &_val) == 0; }
+
+	param_t handle() const { return param_handle(p); }
+private:
+	int32_t _val;
+};
+
+// TODO: add bool type
+
+template <px4::params p>
+using BlockParamFloat = BlockParam<float, p>;
+
+template <px4::params p>
+using BlockParamInt = BlockParam<int32_t, p>;
+
+
+} /* namespace do_not_explicitly_use_this_namespace */
+
+
+// Raise an appropriate compile error if a BlockParam class is used directly
+//template<px4::params p>
+//class BlockParamInt
+//{
+//	static_assert(false && (int)p, "Do not use this class directly, use the DEFINE_BLOCK_PARAMETERS macro instead");
+//};
 
 #endif /* __cplusplus */
 
