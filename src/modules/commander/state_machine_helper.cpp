@@ -111,7 +111,7 @@ void set_link_loss_nav_state(vehicle_status_s *status,
 			     vehicle_status_flags_s *status_flags,
 			     commander_state_s *internal_state,
 			     const link_loss_actions_t link_loss_act,
-			     uint8_t auto_recovery_nav_state);
+			     uint8_t auto_recovery_nav_state, const bool link_regained_action);
 
 void reset_link_loss_globals(struct actuator_armed_s *armed,
 			     const bool old_failsafe,
@@ -603,6 +603,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 		   const bool stay_in_failsafe,
 		   vehicle_status_flags_s *status_flags,
 		   bool landed,
+		   const bool link_regained_action,
 		   const link_loss_actions_t rc_loss_act,
 		   const int offb_loss_act,
 		   const int offb_loss_rc_act,
@@ -635,7 +636,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 		if (rc_lost && is_armed) {
 			enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_rc);
 
-			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act);
+			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act, link_regained_action);
 
 		} else {
 			switch (internal_state->main_state) {
@@ -672,7 +673,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			if (rc_lost && is_armed) {
 				enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_rc);
 
-				set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act);
+				set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act, link_regained_action);
 
 				/* As long as there is RC, we can fallback to ALTCTL, or STAB. */
 				/* A local position estimate is enough for POSCTL for multirotors,
@@ -723,7 +724,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			 * check for datalink lost: this should always trigger RTGS */
 			enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_datalink);
 
-			set_data_link_loss_nav_state(status, armed, status_flags, internal_state, data_link_loss_act);
+			set_data_link_loss_nav_state(status, armed, status_flags, internal_state, data_link_loss_act, link_regained_action);
 
 		} else if (!data_link_loss_act_configured && status->rc_signal_lost && status->data_link_lost && !landed
 			   && mission_finished) {
@@ -732,7 +733,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			 * or all links are lost after the mission finishes in air: this should always trigger RCRECOVER */
 			enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_datalink);
 
-			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act);
+			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act, link_regained_action);
 
 		} else if (!stay_in_failsafe) {
 			/* stay where you are if you should stay in failsafe, otherwise everything is perfect */
@@ -761,7 +762,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			// nothing to do - everything done in check_invalid_pos_nav_state
 		} else if (status->data_link_lost && data_link_loss_act_configured && !landed) {
 			/* also go into failsafe if just datalink is lost, and we're actually in air */
-			set_data_link_loss_nav_state(status, armed, status_flags, internal_state, data_link_loss_act);
+			set_data_link_loss_nav_state(status, armed, status_flags, internal_state, data_link_loss_act, link_regained_action);
 
 			enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_datalink);
 
@@ -769,7 +770,7 @@ bool set_nav_state(struct vehicle_status_s *status,
 			/* go into failsafe if RC is lost and datalink loss is not set up and rc loss is not DISABLED */
 			enable_failsafe(status, old_failsafe, mavlink_log_pub, reason_no_rc);
 
-			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act);
+			set_rc_loss_nav_state(status, armed, status_flags, internal_state, rc_loss_act, link_regained_action);
 
 		} else if (status->rc_signal_lost) {
 			/* don't bother if RC is lost if datalink is connected */
@@ -985,9 +986,10 @@ void set_rc_loss_nav_state(vehicle_status_s *status,
 			   actuator_armed_s *armed,
 			   vehicle_status_flags_s *status_flags,
 			   commander_state_s *internal_state,
-			   const link_loss_actions_t link_loss_act)
+			   const link_loss_actions_t link_loss_act,
+			   const bool link_regained_action)
 {
-	set_link_loss_nav_state(status, armed, status_flags, internal_state, link_loss_act, vehicle_status_s::NAVIGATION_STATE_AUTO_RCRECOVER);
+	set_link_loss_nav_state(status, armed, status_flags, internal_state, link_loss_act, vehicle_status_s::NAVIGATION_STATE_AUTO_RCRECOVER, link_regained_action);
 }
 
 bool check_invalid_pos_nav_state(struct vehicle_status_s *status,
@@ -1053,9 +1055,10 @@ void set_data_link_loss_nav_state(vehicle_status_s *status,
 				  actuator_armed_s *armed,
 				  vehicle_status_flags_s *status_flags,
 				  commander_state_s *internal_state,
-				  const link_loss_actions_t link_loss_act)
+				  const link_loss_actions_t link_loss_act,
+				  const bool link_regained_action)
 {
-	set_link_loss_nav_state(status, armed, status_flags, internal_state, link_loss_act, vehicle_status_s::NAVIGATION_STATE_AUTO_RTGS);
+	set_link_loss_nav_state(status, armed, status_flags, internal_state, link_loss_act, vehicle_status_s::NAVIGATION_STATE_AUTO_RTGS, link_regained_action);
 }
 
 void set_link_loss_nav_state(vehicle_status_s *status,
@@ -1063,7 +1066,8 @@ void set_link_loss_nav_state(vehicle_status_s *status,
 			     vehicle_status_flags_s *status_flags,
 			     commander_state_s *internal_state,
 			     const link_loss_actions_t link_loss_act,
-			     uint8_t auto_recovery_nav_state)
+			     uint8_t auto_recovery_nav_state,
+			     const bool link_regained_action)
 {
 	// do the best you can according to the action set
 	if (link_loss_act == link_loss_actions_t::AUTO_RECOVER
@@ -1076,8 +1080,10 @@ void set_link_loss_nav_state(vehicle_status_s *status,
 	} else if (link_loss_act == link_loss_actions_t::AUTO_RTL
 		   && status_flags->condition_global_position_valid && status_flags->condition_home_position_valid) {
 
-		uint8_t main_state_prev = 0;
-		main_state_transition(status, commander_state_s::MAIN_STATE_AUTO_RTL, main_state_prev, status_flags, internal_state);
+		if (link_regained_action) {
+			uint8_t main_state_prev = 0;
+			main_state_transition(status, commander_state_s::MAIN_STATE_AUTO_RTL, main_state_prev, status_flags, internal_state);
+		}
 		status->nav_state = vehicle_status_s::NAVIGATION_STATE_AUTO_RTL;
 
 	} else if (link_loss_act == link_loss_actions_t::AUTO_LAND && status_flags->condition_local_position_valid) {
