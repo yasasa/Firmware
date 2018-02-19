@@ -66,6 +66,7 @@ class Commander : public control::SuperBlock, public ModuleBase<Commander>
 public:
 	Commander() :
 		SuperBlock(nullptr, "COM"),
+		_param_link_regained_act(this, "COM_LINK_REG_ACT", false),
 		_mission_result_sub(ORB_ID(mission_result), 0, 0, &getSubscriptions())
 	{
 		updateParams();
@@ -89,6 +90,8 @@ public:
 	void enable_hil();
 
 private:
+
+	BlockParamInt _param_link_regained_act;
 
 	// Subscriptions
 	Subscription<mission_result_s> _mission_result_sub;
