@@ -52,6 +52,7 @@
 #include <px4_config.h>
 #include <px4_defines.h>
 #include <px4_tasks.h>
+#include <px4_module_params.h>
 #include <px4_posix.h>
 #include <drivers/drv_hrt.h>
 #include <systemlib/hysteresis/hysteresis.h>
@@ -85,7 +86,7 @@
  */
 extern "C" __EXPORT int mc_pos_control_main(int argc, char *argv[]);
 
-class MulticopterPositionControl : public control::SuperBlock
+class MulticopterPositionControl : public control::SuperBlock, public ModuleParams
 {
 public:
 	/**
@@ -163,10 +164,9 @@ private:
 	struct home_position_s				_home_pos; 				/**< home position */
 
 
-	DEFINE_BLOCK_PARAMETERS(
-		(BlockParamFloat<px4::params::MPC_MANTHR_MIN>)
-		_manual_thr_min, /**< minimal throttle output when flying in manual mode */
-		(BlockParamFloat<px4::params::MPC_MANTHR_MAX>) _manual_thr_max
+	DEFINE_PARAMETERS(
+		(ParamFloat<px4::params::MPC_MANTHR_MIN>) _manual_thr_min, /**< minimal throttle output when flying in manual mode */
+		(ParamFloat<px4::params::MPC_MANTHR_MAX>) _manual_thr_max
 	)
 
 	//control::BlockParamFloat _manual_thr_min; /**< minimal throttle output when flying in manual mode */
@@ -421,6 +421,7 @@ MulticopterPositionControl	*g_control;
 
 MulticopterPositionControl::MulticopterPositionControl() :
 	SuperBlock(nullptr, "MPC"),
+	ModuleParams(nullptr),
 	_control_task(-1),
 	_mavlink_log_pub(nullptr),
 
@@ -606,7 +607,8 @@ MulticopterPositionControl::parameters_update(bool force)
 
 	if (updated || force) {
 		/* update C++ param system */
-		updateParams();
+		ModuleParams::updateParams();
+		SuperBlock::updateParams();
 
 		/* update legacy C interface params */
 		param_get(_params_handles.thr_min, &_params.thr_min);
