@@ -41,8 +41,7 @@
 
 #include "px4_param_macros.h"
 
-// TODO: add proper include path to the build...
-#include <modules/systemlib/param/px4_parameters_public.h>
+#include <px4_parameters_public.h>
 
 /**
  * get the parameter handle from a parameter enum

@@ -111,6 +111,7 @@ add_custom_command(OUTPUT px4_parameters.c px4_parameters.h px4_parameters_publi
 	)
 
 add_custom_target(parameter_headers DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/px4_parameters_public.h)
+add_dependencies(prebuild_targets parameter_headers)
 
 px4_add_module(
 	MODULE modules__systemlib__param
